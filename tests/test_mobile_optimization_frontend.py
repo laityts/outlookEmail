@@ -71,3 +71,18 @@ class FormZoomTests(unittest.TestCase):
         self.assertRegex(css, r'\.form-input[^}]*font-size:\s*16px')
         self.assertRegex(css, r'\.form-select[^}]*font-size:\s*16px')
         self.assertRegex(css, r'\.form-textarea[^}]*font-size:\s*16px')
+
+
+class TouchTargetTests(unittest.TestCase):
+    def test_mobile_panel_action_btn_enlarged(self):
+        css = RESPONSIVE_CSS.read_text(encoding='utf-8')
+        self.assertRegex(css, r'\.panel-action-btn[^}]*width:\s*44px')
+        self.assertRegex(css, r'\.panel-action-btn[^}]*height:\s*44px')
+
+    def test_mobile_account_menu_trigger_enlarged(self):
+        css = RESPONSIVE_CSS.read_text(encoding='utf-8')
+        self.assertRegex(css, r'\.account-menu-trigger[^}]*width:\s*4[0-4]px')
+
+    def test_mobile_modal_close_min_size(self):
+        css = RESPONSIVE_CSS.read_text(encoding='utf-8')
+        self.assertIn('.modal-close', css)
