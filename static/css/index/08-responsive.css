@@ -700,6 +700,17 @@
                 width: calc(100vw - 24px);
                 top: 68px;
             }
+
+            .form-input,
+            .form-select,
+            .form-textarea,
+            .tag-filter-search-input,
+            .import-tag-trigger,
+            .cloudflare-global-filter-input,
+            .refresh-pagination input,
+            .refresh-pagination select {
+                font-size: 16px;
+            }
         }
 
         @media (max-width: 480px) {

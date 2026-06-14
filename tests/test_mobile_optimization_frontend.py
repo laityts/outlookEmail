@@ -63,3 +63,11 @@ class EmailIframeResponsiveTests(unittest.TestCase):
     def test_wide_table_scoped_to_mobile_in_iframe(self):
         js = EMAILS_JS.read_text(encoding='utf-8')
         self.assertIn('@media (max-width: 768px)', js)
+
+
+class FormZoomTests(unittest.TestCase):
+    def test_mobile_form_controls_use_16px(self):
+        css = RESPONSIVE_CSS.read_text(encoding='utf-8')
+        self.assertRegex(css, r'\.form-input[^}]*font-size:\s*16px')
+        self.assertRegex(css, r'\.form-select[^}]*font-size:\s*16px')
+        self.assertRegex(css, r'\.form-textarea[^}]*font-size:\s*16px')
