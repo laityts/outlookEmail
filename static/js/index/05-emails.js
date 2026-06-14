@@ -1457,7 +1457,9 @@
                         <html>
                         <head>
                             <meta charset="UTF-8">
+                            <meta name="viewport" content="width=device-width, initial-scale=1">
                             <style>
+                                html, body { overflow-x: hidden; }
                                 body {
                                     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
                                     font-size: 15px;
@@ -1466,14 +1468,12 @@
                                     margin: 0;
                                     padding: 0;
                                     background-color: #ffffff;
+                                    word-break: break-word;
                                 }
-                                img {
-                                    max-width: 100%;
-                                    height: auto;
-                                }
-                                a {
-                                    color: #0078d4;
-                                }
+                                img, video { max-width: 100%; height: auto; }
+                                table { max-width: 100%; display: block; overflow-x: auto; }
+                                pre { max-width: 100%; overflow-x: auto; white-space: pre-wrap; word-break: break-word; }
+                                a { color: #0078d4; word-break: break-all; }
                             </style>
                         </head>
                         <body>${sanitizedBody}</body>
@@ -1502,7 +1502,8 @@
                             html.scrollHeight,
                             html.offsetHeight
                         );
-                        iframe.style.height = Math.max(height + 100, 600) + 'px';
+                        const minHeight = (typeof isMobileLayout === 'function' && isMobileLayout()) ? 200 : 400;
+                        iframe.style.height = Math.max(height + 24, minHeight) + 'px';
                     }
                 };
 

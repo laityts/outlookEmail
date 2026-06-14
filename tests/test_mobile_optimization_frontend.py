@@ -38,3 +38,24 @@ class MobileScaffoldTests(unittest.TestCase):
         source = CSS_ROUTE.read_text(encoding='utf-8')
         self.assertIn("'09-mobile.css'", source)
         self.assertLess(source.index("'08-responsive.css'"), source.index("'09-mobile.css'"))
+
+
+class EmailIframeResponsiveTests(unittest.TestCase):
+    def test_srcdoc_injects_viewport_meta(self):
+        js = EMAILS_JS.read_text(encoding='utf-8')
+        self.assertIn('name="viewport"', js)
+        self.assertIn('width=device-width', js)
+
+    def test_srcdoc_constrains_wide_elements(self):
+        js = EMAILS_JS.read_text(encoding='utf-8')
+        self.assertIn('max-width: 100%', js)
+        self.assertIn('overflow-x: auto', js)
+        self.assertIn('word-break', js)
+
+    def test_iframe_min_height_relaxed_for_short_mail(self):
+        js = EMAILS_JS.read_text(encoding='utf-8')
+        self.assertNotIn('Math.max(height + 100, 600)', js)
+
+    def test_fullscreen_clone_preserves_document(self):
+        js = EMAILS_JS.read_text(encoding='utf-8')
+        self.assertIn('documentElement.outerHTML', js)
