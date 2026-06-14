@@ -176,7 +176,27 @@ class SwipeActionTests(unittest.TestCase):
 
     def test_swipe_styles_present(self):
         css = MOBILE_CSS.read_text(encoding='utf-8')
-        self.assertIn('swipe-action', css)
+        self.assertIn('is-swiping', css)
+
+    def test_swipe_action_hint_removed(self):
+        css = MOBILE_CSS.read_text(encoding='utf-8')
+        self.assertNotIn('swipe-action-hint', css)
+
+    def test_email_swipe_guards_batch_selection(self):
+        js = EMAILS_JS.read_text(encoding='utf-8')
+        start = js.index('attachSwipeActions(el,')
+        # 守卫代码须在侧滑挂载块内引用批量选择集变量
+        seg = js[start:start + 400]
+        self.assertIn('selectedEmailIds', seg)
+
+    def test_swipe_click_suppression(self):
+        js = CORE_JS.read_text(encoding='utf-8')
+        start = js.index('function attachSwipeActions')
+        end = js.index('\n        }\n', start)
+        seg = js[start:end]
+        # click 监听与侧滑时间标记须在 attachSwipeActions 函数体内
+        self.assertIn("addEventListener('click'", seg)
+        self.assertIn('swipeActionAt', seg)
 
 
 class FeedbackLoadingTests(unittest.TestCase):

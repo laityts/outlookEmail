@@ -1189,6 +1189,7 @@
 
             item.addEventListener('touchstart', (e) => {
                 if (document.getElementById('accountPanel')?.classList.contains('account-selection-mode')) return;
+                if (typeof handlers.guard === 'function' && !handlers.guard()) return;
                 startX = e.touches[0].clientX;
                 startY = e.touches[0].clientY;
                 dx = 0; locked = null;
@@ -1212,9 +1213,17 @@
                 item.classList.remove('is-swiping');
                 item.style.transform = '';
                 if (locked !== 'x') return;
-                if (dx <= -64 && handlers.left) { if (typeof triggerHaptic === 'function') triggerHaptic(10); handlers.left(); }
-                else if (dx >= 64 && handlers.right) { if (typeof triggerHaptic === 'function') triggerHaptic(10); handlers.right(); }
+                let actionFired = false;
+                if (dx <= -64 && handlers.left) { if (typeof triggerHaptic === 'function') triggerHaptic(10); handlers.left(); actionFired = true; }
+                else if (dx >= 64 && handlers.right) { if (typeof triggerHaptic === 'function') triggerHaptic(10); handlers.right(); actionFired = true; }
+                if (actionFired) { item.dataset.swipeActionAt = Date.now(); }
             });
+
+            // 捕获阶段拦截侧滑后合成的 click，防止右滑"标记已读"误开详情
+            item.addEventListener('click', (e) => {
+                const t = Number(item.dataset.swipeActionAt || 0);
+                if (Date.now() - t < 300) { e.stopPropagation(); e.preventDefault(); }
+            }, true);
         }
 
         function setupPullToRefresh() {

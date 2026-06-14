@@ -939,6 +939,7 @@
                     const emailId = el.dataset.emailId;
                     const emailObj = currentEmails.find(e => String(e.id) === String(emailId));
                     attachSwipeActions(el, {
+                        guard: () => selectedEmailIds.size === 0,
                         left: () => deleteEmails([emailId]),
                         right: () => {
                             if (emailObj) {
