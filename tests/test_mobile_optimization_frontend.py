@@ -177,3 +177,18 @@ class SwipeActionTests(unittest.TestCase):
     def test_swipe_styles_present(self):
         css = MOBILE_CSS.read_text(encoding='utf-8')
         self.assertIn('swipe-action', css)
+
+
+class FeedbackLoadingTests(unittest.TestCase):
+    def test_haptic_helper_present(self):
+        js = CORE_JS.read_text(encoding='utf-8')
+        self.assertIn('function triggerHaptic', js)
+        self.assertIn('navigator.vibrate', js)
+
+    def test_skeleton_styles_present(self):
+        css = MOBILE_CSS.read_text(encoding='utf-8')
+        self.assertIn('skeleton', css)
+
+    def test_reduced_motion_respected(self):
+        css = MOBILE_CSS.read_text(encoding='utf-8')
+        self.assertIn('prefers-reduced-motion', css)

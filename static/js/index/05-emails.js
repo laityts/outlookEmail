@@ -464,7 +464,11 @@
             setEmailListLoadingState(true);
             currentSkip = 0;
             hasMoreEmails = true;
-            container.innerHTML = '<div class="loading"><div class="loading-spinner"></div></div>';
+            if (isMobileLayout()) {
+                renderSkeletonList(container, 6);
+            } else {
+                container.innerHTML = '<div class="loading"><div class="loading-spinner"></div></div>';
+            }
             let startedBackgroundSync = false;
 
             try {

@@ -1169,6 +1169,20 @@
             }
         }
 
+        function triggerHaptic(durationMs) {
+            try {
+                if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
+                    navigator.vibrate(durationMs || 10);
+                }
+            } catch (e) { /* 不支持则忽略 */ }
+        }
+
+        function renderSkeletonList(container, count) {
+            if (!container) return;
+            container.innerHTML = Array.from({ length: count || 6 })
+                .map(() => '<div class="skeleton-item"></div>').join('');
+        }
+
         function attachSwipeActions(item, handlers) {
             if (!isMobileLayout() || !item) return;
             let startX = 0, startY = 0, dx = 0, locked = null;

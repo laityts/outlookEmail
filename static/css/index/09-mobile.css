@@ -43,3 +43,22 @@
                 font-weight: 700;
             }
         }
+        @media (max-width: 768px) {
+            .skeleton-item {
+                margin: 0 12px 10px;
+                height: 84px;
+                border-radius: 16px;
+                background: linear-gradient(90deg, #eef1f5 25%, #f7f9fc 37%, #eef1f5 63%);
+                background-size: 400% 100%;
+                animation: skeleton-shimmer 1.4s ease infinite;
+            }
+            @keyframes skeleton-shimmer {
+                0% { background-position: 100% 50%; }
+                100% { background-position: 0 50%; }
+            }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .skeleton-item { animation: none; }
+            .pull-refresh-indicator { transition: none; }
+            .email-item, .account-item { transition: none; }
+        }
