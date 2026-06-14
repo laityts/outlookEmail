@@ -159,3 +159,21 @@ class PullToRefreshTests(unittest.TestCase):
         start = js.index('function setupPullToRefresh')
         end = js.index('\n        }\n', start)
         self.assertIn("getElementById('pullRefreshIndicator')", js[start:end])
+
+
+class SwipeActionTests(unittest.TestCase):
+    def test_swipe_attach_function_present(self):
+        js = CORE_JS.read_text(encoding='utf-8')
+        self.assertIn('function attachSwipeActions', js)
+
+    def test_swipe_axis_lock_logic(self):
+        js = CORE_JS.read_text(encoding='utf-8')
+        start = js.index('function attachSwipeActions')
+        end = js.index('\n        }\n', start)
+        seg = js[start:end]
+        self.assertIn('Math.abs', seg)
+        self.assertIn('isMobileLayout', seg)
+
+    def test_swipe_styles_present(self):
+        css = MOBILE_CSS.read_text(encoding='utf-8')
+        self.assertIn('swipe-action', css)

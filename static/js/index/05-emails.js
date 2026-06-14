@@ -928,6 +928,26 @@
             `}).join('');
 
             updateEmailBatchActionBar();
+
+            // 挂载侧滑操作（仅移动端；左滑删除，右滑标记已读）
+            if (typeof attachSwipeActions === 'function') {
+                document.querySelectorAll('#emailList .email-item').forEach((el) => {
+                    const emailId = el.dataset.emailId;
+                    const emailObj = currentEmails.find(e => String(e.id) === String(emailId));
+                    attachSwipeActions(el, {
+                        left: () => deleteEmails([emailId]),
+                        right: () => {
+                            if (emailObj) {
+                                requestMarkEmailsAsRead([{
+                                    id: emailId,
+                                    folder: emailObj.folder || currentFolder || 'inbox',
+                                    id_mode: emailObj.id_mode || ''
+                                }]);
+                            }
+                        },
+                    });
+                });
+            }
         }
 
         function handleEmailListClick(event) {

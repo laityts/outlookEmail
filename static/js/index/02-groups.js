@@ -955,6 +955,18 @@
             }
             updateBatchActionBar();
             maybeLoadMoreAccounts();
+
+            // 挂载侧滑操作（仅移动端；左滑删除账号）
+            if (typeof attachSwipeActions === 'function') {
+                document.querySelectorAll('#accountList .account-item').forEach((el) => {
+                    const accountId = el.dataset.accountId;
+                    const checkbox = el.querySelector('.account-select-checkbox');
+                    const accountEmail = checkbox ? checkbox.dataset.accountEmail : '';
+                    attachSwipeActions(el, {
+                        left: () => deleteAccount(accountId, accountEmail),
+                    });
+                });
+            }
         }
 
         // 排序相关变量

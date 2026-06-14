@@ -1169,6 +1169,40 @@
             }
         }
 
+        function attachSwipeActions(item, handlers) {
+            if (!isMobileLayout() || !item) return;
+            let startX = 0, startY = 0, dx = 0, locked = null;
+
+            item.addEventListener('touchstart', (e) => {
+                if (document.getElementById('accountPanel')?.classList.contains('account-selection-mode')) return;
+                startX = e.touches[0].clientX;
+                startY = e.touches[0].clientY;
+                dx = 0; locked = null;
+            }, { passive: true });
+
+            item.addEventListener('touchmove', (e) => {
+                const cx = e.touches[0].clientX, cy = e.touches[0].clientY;
+                const ddx = cx - startX, ddy = cy - startY;
+                if (locked === null) {
+                    if (Math.abs(ddx) > 10 && Math.abs(ddx) > Math.abs(ddy) * 1.5) locked = 'x';
+                    else if (Math.abs(ddy) > 10) locked = 'y';
+                }
+                if (locked === 'x') {
+                    dx = ddx;
+                    item.style.transform = `translateX(${Math.max(-96, Math.min(96, dx))}px)`;
+                    item.classList.add('is-swiping');
+                }
+            }, { passive: true });
+
+            item.addEventListener('touchend', () => {
+                item.classList.remove('is-swiping');
+                item.style.transform = '';
+                if (locked !== 'x') return;
+                if (dx <= -64 && handlers.left) { if (typeof triggerHaptic === 'function') triggerHaptic(10); handlers.left(); }
+                else if (dx >= 64 && handlers.right) { if (typeof triggerHaptic === 'function') triggerHaptic(10); handlers.right(); }
+            });
+        }
+
         function setupPullToRefresh() {
             const list = document.getElementById('emailList');
             const indicator = document.getElementById('pullRefreshIndicator');
