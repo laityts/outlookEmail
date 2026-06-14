@@ -3,6 +3,7 @@ import unittest
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
 INDEX_HTML = ROOT_DIR / 'templates' / 'index.html'
+LAYOUT_HTML = ROOT_DIR / 'templates' / 'partials' / 'index' / 'layout.html'
 EMAILS_JS = ROOT_DIR / 'static' / 'js' / 'index' / '05-emails.js'
 CORE_JS = ROOT_DIR / 'static' / 'js' / 'index' / '01-core.js'
 RESPONSIVE_CSS = ROOT_DIR / 'static' / 'css' / 'index' / '08-responsive.css'
@@ -138,3 +139,23 @@ class PullToRefreshTests(unittest.TestCase):
     def test_pull_indicator_styles_present(self):
         css = MOBILE_CSS.read_text(encoding='utf-8')
         self.assertIn('pull-refresh-indicator', css)
+
+    def test_pull_indicator_is_sibling_not_child_of_email_list(self):
+        # 指示器必须是 #emailList 的兄弟节点，而非子节点；
+        # 否则首次 loadEmails 的 container.innerHTML 会永久销毁该节点，使下拉视觉反馈静默失效。
+        html = LAYOUT_HTML.read_text(encoding='utf-8')
+        indicator_pos = html.index('id="pullRefreshIndicator"')
+        list_open = html.index('id="emailList"')
+        list_close = html.index('</div>', list_open)
+        # 指示器不应位于 #emailList 起始标签与其首个闭合 </div> 之间（即不是直接子节点占位）
+        self.assertFalse(
+            list_open < indicator_pos < list_close,
+            '#pullRefreshIndicator 不应作为 #emailList 的子节点，会被 innerHTML 覆盖销毁',
+        )
+
+    def test_pull_indicator_not_reacquired_inside_email_list(self):
+        # JS 不应依赖指示器位于 #emailList 内，setupPullToRefresh 一次查询的引用须稳定。
+        js = CORE_JS.read_text(encoding='utf-8')
+        start = js.index('function setupPullToRefresh')
+        end = js.index('\n        }\n', start)
+        self.assertIn("getElementById('pullRefreshIndicator')", js[start:end])
