@@ -652,6 +652,40 @@
             syncMobilePanels();
         }
 
+        function pushMobileViewState(name) {
+            if (!isMobileLayout()) return;
+            if (window.history.state && window.history.state.mobileView === name) return;
+            window.history.pushState({ mobileView: name }, '');
+        }
+
+        function hasOpenMobileModal() {
+            return !!document.querySelector('.modal.show');
+        }
+
+        function handleMobileBack(event) {
+            if (!isMobileLayout()) return;
+            // 1) 关弹窗
+            if (hasOpenMobileModal() && typeof closeAllModals === 'function') {
+                closeAllModals();
+                pushMobileViewState('root');
+                return;
+            }
+            // 2) 收抽屉
+            if (document.querySelector('#groupPanel.show, #accountPanel.show')) {
+                closeMobilePanels();
+                pushMobileViewState('root');
+                return;
+            }
+            // 3) 详情回列表
+            const listPanel = document.getElementById('emailListPanel');
+            if (listPanel && listPanel.classList.contains('hidden')) {
+                showEmailList();
+                pushMobileViewState('root');
+                return;
+            }
+            // 4) 其余：不拦截（浏览器默认行为已发生，无需再处理）
+        }
+
         function openMobilePanel(panelName) {
             if (!isMobileLayout()) return;
 
@@ -663,6 +697,7 @@
             otherPanel?.classList.remove('show');
             targetPanel.classList.add('show');
             syncMobilePanels();
+            pushMobileViewState('panel');
         }
 
         function toggleMobilePanel(panelName) {
@@ -973,6 +1008,7 @@
             closeMobilePanels();
             closeNavbarActionsMenu();
             updateMobileContext();
+            pushMobileViewState('detail');
         }
 
         function syncResponsiveUI() {
@@ -1188,6 +1224,12 @@
                     closeVersionPopover();
                 }
             });
+
+            // 物理返回键导航栈初始化
+            if (!window.history.state) {
+                window.history.replaceState({ mobileView: 'root' }, '');
+            }
+            window.addEventListener('popstate', handleMobileBack);
 
             closeAllModals(); // 修复：应用启动时关闭所有模态框，防止浏览器缓存导致残留的模态框背景层
             loadVersionStatus();

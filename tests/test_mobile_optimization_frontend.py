@@ -101,3 +101,20 @@ class ModalKeyboardTests(unittest.TestCase):
     def test_modal_content_full_width_on_mobile(self):
         css = RESPONSIVE_CSS.read_text(encoding='utf-8')
         self.assertRegex(css, r'\.modal-content[^}]*width:\s*100%\s*!important')
+
+
+class BackButtonNavTests(unittest.TestCase):
+    def test_popstate_listener_present(self):
+        js = CORE_JS.read_text(encoding='utf-8')
+        self.assertIn("addEventListener('popstate'", js)
+
+    def test_pushes_mobile_view_state(self):
+        js = CORE_JS.read_text(encoding='utf-8')
+        self.assertIn('mobileView', js)
+        self.assertIn('history.pushState', js)
+
+    def test_back_handler_guarded_by_mobile_layout(self):
+        js = CORE_JS.read_text(encoding='utf-8')
+        start = js.index('function handleMobileBack')
+        end = js.index('\n        }', start)
+        self.assertIn('isMobileLayout', js[start:end])
