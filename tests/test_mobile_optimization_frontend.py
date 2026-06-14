@@ -86,3 +86,18 @@ class TouchTargetTests(unittest.TestCase):
     def test_mobile_modal_close_min_size(self):
         css = RESPONSIVE_CSS.read_text(encoding='utf-8')
         self.assertIn('.modal-close', css)
+
+
+class ModalKeyboardTests(unittest.TestCase):
+    def test_visual_viewport_listener_present(self):
+        js = CORE_JS.read_text(encoding='utf-8')
+        self.assertIn('visualViewport', js)
+        self.assertIn('--keyboard-inset', js)
+
+    def test_modal_uses_keyboard_inset(self):
+        css = MODALS_CSS.read_text(encoding='utf-8')
+        self.assertIn('--keyboard-inset', css)
+
+    def test_modal_content_full_width_on_mobile(self):
+        css = RESPONSIVE_CSS.read_text(encoding='utf-8')
+        self.assertRegex(css, r'\.modal-content[^}]*width:\s*100%\s*!important')

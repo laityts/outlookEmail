@@ -1173,6 +1173,16 @@
                 clearTimeout(responsiveUiResizeTimer);
                 responsiveUiResizeTimer = window.setTimeout(syncResponsiveUI, 120);
             });
+            if (window.visualViewport) {
+                const updateKeyboardInset = () => {
+                    const vv = window.visualViewport;
+                    const inset = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+                    document.documentElement.style.setProperty('--keyboard-inset', inset + 'px');
+                };
+                window.visualViewport.addEventListener('resize', updateKeyboardInset);
+                window.visualViewport.addEventListener('scroll', updateKeyboardInset);
+                updateKeyboardInset();
+            }
             document.addEventListener('keydown', function (event) {
                 if (event.key === 'Escape') {
                     closeVersionPopover();

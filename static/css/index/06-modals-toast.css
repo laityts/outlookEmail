@@ -1,3 +1,7 @@
+        :root {
+            --keyboard-inset: 0px;
+        }
+
         /* 模态框 */
         .modal {
             display: none;

@@ -687,8 +687,9 @@
             #refreshErrorModal .modal-content {
                 width: 100% !important;
                 max-width: 100% !important;
-                max-height: calc(100dvh - 12px);
+                max-height: calc(100dvh - 12px - var(--keyboard-inset, 0px));
                 border-radius: 20px 20px 0 0;
+                padding-bottom: var(--keyboard-inset, 0px);
             }
 
             .modal-header,
