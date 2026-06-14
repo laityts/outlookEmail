@@ -35,6 +35,8 @@
             .navbar {
                 padding: 0 12px;
                 gap: 12px;
+                padding-top: env(safe-area-inset-top, 0px);
+                height: calc(56px + env(safe-area-inset-top, 0px));
             }
 
             .navbar-brand {
@@ -101,16 +103,16 @@
             }
 
             .main-container {
-                margin-top: 56px;
-                height: calc(100dvh - 56px);
-                min-height: calc(100dvh - 56px);
+                margin-top: calc(56px + env(safe-area-inset-top, 0px));
+                height: calc(100dvh - 56px - env(safe-area-inset-top, 0px));
+                min-height: calc(100dvh - 56px - env(safe-area-inset-top, 0px));
                 overflow: hidden;
             }
 
             .group-panel,
             .account-panel {
                 position: fixed;
-                top: 56px;
+                top: calc(56px + env(safe-area-inset-top, 0px));
                 bottom: 0;
                 left: 0;
                 height: auto;
@@ -252,7 +254,7 @@
             .mobile-panel-scrim.show {
                 display: block;
                 position: fixed;
-                top: 56px;
+                top: calc(56px + env(safe-area-inset-top, 0px));
                 left: 0;
                 right: 0;
                 bottom: 0;

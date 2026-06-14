@@ -11,6 +11,25 @@ MODALS_CSS = ROOT_DIR / 'static' / 'css' / 'index' / '06-modals-toast.css'
 CSS_ROUTE = ROOT_DIR / 'outlook_web' / 'segments' / '04_routes_groups_accounts.py'
 
 
+class ViewportSafeAreaTests(unittest.TestCase):
+    def test_viewport_has_fit_cover(self):
+        html = INDEX_HTML.read_text(encoding='utf-8')
+        self.assertIn('viewport-fit=cover', html)
+
+    def test_viewport_keeps_user_scalable(self):
+        html = INDEX_HTML.read_text(encoding='utf-8')
+        self.assertNotIn('user-scalable=no', html)
+        self.assertNotIn('maximum-scale=1', html)
+
+    def test_theme_color_meta_present(self):
+        html = INDEX_HTML.read_text(encoding='utf-8')
+        self.assertIn('name="theme-color"', html)
+
+    def test_navbar_uses_top_safe_area(self):
+        css = RESPONSIVE_CSS.read_text(encoding='utf-8')
+        self.assertIn('safe-area-inset-top', css)
+
+
 class MobileScaffoldTests(unittest.TestCase):
     def test_mobile_css_file_exists(self):
         self.assertTrue(MOBILE_CSS.exists())
