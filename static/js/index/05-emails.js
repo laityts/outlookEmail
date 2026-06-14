@@ -1459,7 +1459,6 @@
                             <meta charset="UTF-8">
                             <meta name="viewport" content="width=device-width, initial-scale=1">
                             <style>
-                                html, body { overflow-x: hidden; }
                                 body {
                                     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
                                     font-size: 15px;
@@ -1471,9 +1470,12 @@
                                     word-break: break-word;
                                 }
                                 img, video { max-width: 100%; height: auto; }
-                                table { max-width: 100%; display: block; overflow-x: auto; }
                                 pre { max-width: 100%; overflow-x: auto; white-space: pre-wrap; word-break: break-word; }
                                 a { color: #0078d4; word-break: break-all; }
+                                @media (max-width: 768px) {
+                                    html, body { overflow-x: hidden; }
+                                    table { max-width: 100%; display: block; overflow-x: auto; }
+                                }
                             </style>
                         </head>
                         <body>${sanitizedBody}</body>

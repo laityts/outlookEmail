@@ -59,3 +59,7 @@ class EmailIframeResponsiveTests(unittest.TestCase):
     def test_fullscreen_clone_preserves_document(self):
         js = EMAILS_JS.read_text(encoding='utf-8')
         self.assertIn('documentElement.outerHTML', js)
+
+    def test_wide_table_scoped_to_mobile_in_iframe(self):
+        js = EMAILS_JS.read_text(encoding='utf-8')
+        self.assertIn('@media (max-width: 768px)', js)
