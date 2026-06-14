@@ -940,7 +940,10 @@
                     const emailObj = currentEmails.find(e => String(e.id) === String(emailId));
                     attachSwipeActions(el, {
                         guard: () => selectedEmailIds.size === 0,
-                        left: () => deleteEmails([emailId]),
+                        left: async () => {
+                            if (!(await showConfirmModal('确定要永久删除这封邮件吗？此操作不可恢复！', { title: '删除邮件', confirmText: '确认删除' }))) return;
+                            deleteEmails([emailId]);
+                        },
                         right: () => {
                             if (emailObj) {
                                 requestMarkEmailsAsRead([{

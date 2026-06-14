@@ -659,12 +659,17 @@
         }
 
         function hasOpenMobileModal() {
-            return !!document.querySelector('.modal.show');
+            return !!document.querySelector('.modal.show, .fullscreen-email-modal.show');
         }
 
         function handleMobileBack(event) {
             if (!isMobileLayout()) return;
-            // 1) 关弹窗
+            // 1) 关弹窗（全屏邮件模态优先，普通模态次之）
+            if (document.querySelector('.fullscreen-email-modal.show') && typeof closeFullscreenEmail === 'function') {
+                closeFullscreenEmail();
+                pushMobileViewState('root');
+                return;
+            }
             if (hasOpenMobileModal() && typeof closeAllModals === 'function') {
                 closeAllModals();
                 pushMobileViewState('root');
@@ -1217,7 +1222,7 @@
                 if (dx <= -64 && handlers.left) { if (typeof triggerHaptic === 'function') triggerHaptic(10); handlers.left(); actionFired = true; }
                 else if (dx >= 64 && handlers.right) { if (typeof triggerHaptic === 'function') triggerHaptic(10); handlers.right(); actionFired = true; }
                 if (actionFired) { item.dataset.swipeActionAt = Date.now(); }
-            });
+            }, { passive: true });
 
             // 捕获阶段拦截侧滑后合成的 click，防止右滑"标记已读"误开详情
             item.addEventListener('click', (e) => {

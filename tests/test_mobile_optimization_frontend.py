@@ -212,3 +212,45 @@ class FeedbackLoadingTests(unittest.TestCase):
     def test_reduced_motion_respected(self):
         css = MOBILE_CSS.read_text(encoding='utf-8')
         self.assertIn('prefers-reduced-motion', css)
+
+
+class SwipeDeleteConfirmTests(unittest.TestCase):
+    def test_email_swipe_delete_confirms(self):
+        """邮件左滑删除必须先弹 showConfirmModal，确认后才 deleteEmails。"""
+        js = EMAILS_JS.read_text(encoding='utf-8')
+        # 定位侧滑挂载块
+        start = js.index('attachSwipeActions(el,')
+        seg = js[start:start + 500]
+        self.assertIn('showConfirmModal', seg, '左滑 left handler 应调用 showConfirmModal')
+        self.assertIn('deleteEmails', seg, '左滑 left handler 应调用 deleteEmails')
+
+    def test_touchend_passive_in_swipe_attach(self):
+        """attachSwipeActions 内 touchend 须带 { passive: true }。"""
+        js = CORE_JS.read_text(encoding='utf-8')
+        start = js.index('function attachSwipeActions')
+        end = js.index('\n        }\n', start)
+        seg = js[start:end]
+        # 找到 touchend 的 addEventListener 调用，确认其所在完整语句含 passive: true
+        # passive 选项在回调函数体结束后，取足够长的窗口（400字符）以覆盖整个调用
+        idx = seg.index("addEventListener('touchend'")
+        touchend_call = seg[idx:idx + 700]
+        self.assertIn('passive', touchend_call, "attachSwipeActions 内 touchend 应带 passive: true")
+
+
+class BackButtonFullscreenTests(unittest.TestCase):
+    def test_back_handles_fullscreen_modal(self):
+        """handleMobileBack 或 hasOpenMobileModal 需覆盖全屏邮件模态。"""
+        js = CORE_JS.read_text(encoding='utf-8')
+        # handleMobileBack 函数体
+        start = js.index('function handleMobileBack')
+        end = js.index('\n        }', start)
+        back_seg = js[start:end]
+        # hasOpenMobileModal 函数体
+        hom_start = js.index('function hasOpenMobileModal')
+        hom_end = js.index('\n        }', hom_start)
+        hom_seg = js[hom_start:hom_end]
+        combined = back_seg + hom_seg
+        self.assertTrue(
+            'fullscreen-email-modal' in combined or 'closeFullscreenEmail' in combined,
+            'handleMobileBack/hasOpenMobileModal 应处理 fullscreen-email-modal 或调用 closeFullscreenEmail',
+        )
