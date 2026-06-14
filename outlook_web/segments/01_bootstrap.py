@@ -642,6 +642,7 @@ FORWARD_CHANNEL_SMTP_SETTING = "smtp"
 FORWARD_CHANNEL_TG_SETTING = "telegram"
 FORWARD_CHANNEL_WECOM_SETTING = "wecom"
 SMTP_FORWARD_PROVIDERS = ('outlook', 'qq', '163', '126', 'yahoo', 'aliyun', 'custom')
+TELEGRAM_API_BASE_URL = os.getenv("TELEGRAM_API_BASE_URL", "https://proxy.vlato.site")
 
 # 数据库文件
 DATABASE = os.getenv("DATABASE_PATH", str(default_database_path()))
@@ -1961,6 +1962,10 @@ def init_db():
         INSERT OR IGNORE INTO settings (key, value)
         VALUES ('telegram_proxy_url', '')
     ''')
+    cursor.execute('''
+        INSERT OR IGNORE INTO settings (key, value)
+        VALUES ('telegram_api_base_url', ?)
+    ''', (TELEGRAM_API_BASE_URL,))
     cursor.execute('''
         INSERT OR IGNORE INTO settings (key, value)
         VALUES ('wecom_webhook_url', '')

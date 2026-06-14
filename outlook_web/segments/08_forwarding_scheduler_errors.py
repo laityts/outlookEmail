@@ -90,6 +90,17 @@ def get_forward_channels() -> list[str]:
     return normalize_forward_channel_settings(raw_channels)
 
 
+def normalize_telegram_api_base_url(value: Any) -> str:
+    api_base_url = str(value or '').strip() or TELEGRAM_API_BASE_URL
+    if not api_base_url.startswith(('http://', 'https://')):
+        api_base_url = f'https://{api_base_url}'
+    return api_base_url.rstrip('/')
+
+
+def build_telegram_send_message_url(bot_token: str, api_base_url: Any = '') -> str:
+    return f'{normalize_telegram_api_base_url(api_base_url)}/bot{bot_token}/sendMessage'
+
+
 def get_forward_account_delay_seconds() -> int:
     try:
         return max(0, min(60, int(get_setting('forward_account_delay_seconds', '0') or '0')))
@@ -214,10 +225,11 @@ def send_forward_telegram(text: str) -> bool:
     bot_token = get_setting_decrypted('telegram_bot_token', '').strip()
     chat_id = get_setting('telegram_chat_id', '').strip()
     proxy_url = get_setting('telegram_proxy_url', '').strip()
+    api_base_url = get_setting('telegram_api_base_url', TELEGRAM_API_BASE_URL).strip()
     if not bot_token or not chat_id:
         return False
     response = post_with_proxy_fallback(
-        f'https://api.telegram.org/bot{bot_token}/sendMessage',
+        build_telegram_send_message_url(bot_token, api_base_url),
         json={
             'chat_id': chat_id,
             'text': text[:4000],
@@ -233,10 +245,11 @@ def send_forward_telegram_with_config(config: Dict[str, Any], text: str) -> bool
     bot_token = str(config.get('bot_token', '') or '').strip()
     chat_id = str(config.get('chat_id', '') or '').strip()
     proxy_url = str(config.get('proxy_url', '') or '').strip()
+    api_base_url = str(config.get('api_base_url', '') or '').strip()
     if not bot_token or not chat_id:
         return False
     response = post_with_proxy_fallback(
-        f'https://api.telegram.org/bot{bot_token}/sendMessage',
+        build_telegram_send_message_url(bot_token, api_base_url),
         json={
             'chat_id': chat_id,
             'text': text[:4000],

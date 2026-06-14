@@ -1708,6 +1708,7 @@
           <label class="check-row"><input id="settingSmtpSsl" type="checkbox" ${boolSetting(settings.smtp_use_ssl, true) ? 'checked' : ''}><span>SMTP SSL</span></label>
           <label><span>Telegram Bot Token</span><input id="settingTelegramBotToken" type="password" value="${escapeHtml(settings.telegram_bot_token || '')}"></label>
           <label><span>Telegram Chat ID</span><input id="settingTelegramChatId" value="${escapeHtml(settings.telegram_chat_id || '')}"></label>
+          <label><span>Telegram API 反代地址</span><input id="settingTelegramApiBaseUrl" value="${escapeHtml(settings.telegram_api_base_url || 'https://proxy.vlato.site')}"></label>
           <label><span>Telegram 代理</span><input id="settingTelegramProxyUrl" value="${escapeHtml(settings.telegram_proxy_url || '')}"></label>
           <label><span>企业微信 Webhook</span><input id="settingWecomWebhookUrl" type="password" value="${escapeHtml(settings.wecom_webhook_url || '')}"></label>
         </div>
@@ -1779,6 +1780,7 @@
       smtp_use_ssl: checked('settingSmtpSsl'),
       telegram_bot_token: valueOf('settingTelegramBotToken'),
       telegram_chat_id: valueOf('settingTelegramChatId'),
+      telegram_api_base_url: valueOf('settingTelegramApiBaseUrl'),
       telegram_proxy_url: valueOf('settingTelegramProxyUrl'),
       wecom_webhook_url: valueOf('settingWecomWebhookUrl'),
       webdav_backup_enabled: checked('settingWebdavEnabled'),
@@ -1831,6 +1833,7 @@
       telegram: {
         bot_token: valueOf('settingTelegramBotToken'),
         chat_id: valueOf('settingTelegramChatId'),
+        api_base_url: valueOf('settingTelegramApiBaseUrl'),
         proxy_url: valueOf('settingTelegramProxyUrl'),
       },
       wecom: {

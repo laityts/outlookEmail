@@ -618,6 +618,9 @@ def api_get_settings():
     settings['telegram_bot_token'] = get_setting_decrypted('telegram_bot_token', '')
     settings['telegram_chat_id'] = get_setting('telegram_chat_id', '')
     settings['telegram_proxy_url'] = get_setting('telegram_proxy_url', '')
+    settings['telegram_api_base_url'] = normalize_telegram_api_base_url(
+        get_setting('telegram_api_base_url', TELEGRAM_API_BASE_URL)
+    )
     settings['wecom_webhook_url'] = get_setting_decrypted('wecom_webhook_url', '')
     settings['webdav_backup_enabled'] = get_setting('webdav_backup_enabled', 'false')
     settings['webdav_backup_url'] = get_setting('webdav_backup_url', '')
@@ -1004,6 +1007,13 @@ def api_update_settings():
             updated.append('Telegram 代理')
         else:
             errors.append('保存 Telegram 代理失败')
+
+    if 'telegram_api_base_url' in data:
+        api_base_url = normalize_telegram_api_base_url(data['telegram_api_base_url'])
+        if set_setting('telegram_api_base_url', api_base_url):
+            updated.append('Telegram API 反代地址')
+        else:
+            errors.append('保存 Telegram API 反代地址失败')
 
     if 'wecom_webhook_url' in data:
         if set_setting_encrypted('wecom_webhook_url', data['wecom_webhook_url'].strip()):

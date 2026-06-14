@@ -1292,6 +1292,7 @@
                     document.getElementById('settingsSmtpUseSsl').checked = String(data.settings.smtp_use_ssl) !== 'false';
                     document.getElementById('settingsTelegramBotToken').value = data.settings.telegram_bot_token || '';
                     document.getElementById('settingsTelegramChatId').value = data.settings.telegram_chat_id || '';
+                    document.getElementById('settingsTelegramApiBaseUrl').value = data.settings.telegram_api_base_url || 'https://proxy.vlato.site';
                     document.getElementById('settingsTelegramProxyUrl').value = data.settings.telegram_proxy_url || '';
                     document.getElementById('settingsWecomWebhookUrl').value = data.settings.wecom_webhook_url || '';
                     document.getElementById('webdavBackupEnabled').checked = String(data.settings.webdav_backup_enabled) === 'true';
@@ -1358,6 +1359,7 @@
             const smtpUsername = document.getElementById('settingsSmtpUsername').value.trim();
             const telegramBotToken = document.getElementById('settingsTelegramBotToken').value.trim();
             const telegramChatId = document.getElementById('settingsTelegramChatId').value.trim();
+            const telegramApiBaseUrl = document.getElementById('settingsTelegramApiBaseUrl').value.trim();
             const telegramProxyUrl = document.getElementById('settingsTelegramProxyUrl').value.trim();
             const wecomWebhookUrl = document.getElementById('settingsWecomWebhookUrl').value.trim();
             const webdavBackupSettings = getWebdavBackupFormSettings();
@@ -1468,6 +1470,7 @@
             settings.smtp_use_ssl = document.getElementById('settingsSmtpUseSsl').checked;
             settings.telegram_bot_token = telegramBotToken;
             settings.telegram_chat_id = telegramChatId;
+            settings.telegram_api_base_url = telegramApiBaseUrl;
             settings.telegram_proxy_url = telegramProxyUrl;
             settings.wecom_webhook_url = wecomWebhookUrl;
 
@@ -1581,6 +1584,7 @@
                 telegram: {
                     bot_token: document.getElementById('settingsTelegramBotToken').value.trim(),
                     chat_id: document.getElementById('settingsTelegramChatId').value.trim(),
+                    api_base_url: document.getElementById('settingsTelegramApiBaseUrl').value.trim(),
                     proxy_url: document.getElementById('settingsTelegramProxyUrl').value.trim(),
                 },
                 wecom: {

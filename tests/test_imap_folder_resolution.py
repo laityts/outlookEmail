@@ -3101,6 +3101,24 @@ class TelegramForwardingProxySettingsTests(unittest.TestCase):
         self.assertTrue(payload['success'])
         self.assertEqual(payload['settings']['telegram_proxy_url'], 'socks5://127.0.0.1:1080')
 
+    def test_settings_api_persists_telegram_api_base_url(self):
+        response = self.client.put(
+            '/api/settings',
+            json={
+                'telegram_api_base_url': 'proxy.vlato.site',
+            }
+        )
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.get_json()
+        self.assertTrue(payload['success'])
+
+        response = self.client.get('/api/settings')
+        self.assertEqual(response.status_code, 200)
+        payload = response.get_json()
+        self.assertTrue(payload['success'])
+        self.assertEqual(payload['settings']['telegram_api_base_url'], 'https://proxy.vlato.site')
+
     def test_send_forward_telegram_uses_configured_proxy(self):
         class FakeResponse:
             ok = True
@@ -3108,6 +3126,7 @@ class TelegramForwardingProxySettingsTests(unittest.TestCase):
         with self.app.app_context():
             self.assertTrue(web_outlook_app.set_setting_encrypted('telegram_bot_token', '123456:abcdef'))
             self.assertTrue(web_outlook_app.set_setting('telegram_chat_id', '-1001234567890'))
+            self.assertTrue(web_outlook_app.set_setting('telegram_api_base_url', 'proxy.vlato.site'))
             self.assertTrue(web_outlook_app.set_setting('telegram_proxy_url', 'socks5://127.0.0.1:1080'))
 
         with self.app.app_context():
@@ -3116,7 +3135,10 @@ class TelegramForwardingProxySettingsTests(unittest.TestCase):
 
         self.assertTrue(success)
         self.assertEqual(mocked_request.call_count, 1)
-        self.assertEqual(mocked_request.call_args.args[:2], ('post', 'https://api.telegram.org/bot123456:abcdef/sendMessage'))
+        self.assertEqual(
+            mocked_request.call_args.args[:2],
+            ('post', 'https://proxy.vlato.site/bot123456:abcdef/sendMessage'),
+        )
         self.assertEqual(
             mocked_request.call_args.kwargs['proxies'],
             {'http': 'socks5://127.0.0.1:1080', 'https': 'socks5://127.0.0.1:1080'},
