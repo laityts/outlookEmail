@@ -1169,6 +1169,45 @@
             }
         }
 
+        function setupPullToRefresh() {
+            const list = document.getElementById('emailList');
+            const indicator = document.getElementById('pullRefreshIndicator');
+            if (!list || !indicator) return;
+
+            const THRESHOLD = 64;
+            let startY = 0;
+            let pulling = false;
+            let distance = 0;
+
+            list.addEventListener('touchstart', (e) => {
+                if (!isMobileLayout() || list.scrollTop > 0 || !currentAccount) return;
+                startY = e.touches[0].clientY;
+                pulling = true;
+                distance = 0;
+            }, { passive: true });
+
+            list.addEventListener('touchmove', (e) => {
+                if (!pulling) return;
+                distance = Math.max(0, (e.touches[0].clientY - startY) * 0.5);
+                if (distance > 0 && list.scrollTop <= 0) {
+                    indicator.style.height = Math.min(distance, THRESHOLD + 16) + 'px';
+                    indicator.classList.toggle('is-ready', distance >= THRESHOLD);
+                }
+            }, { passive: true });
+
+            list.addEventListener('touchend', () => {
+                if (!pulling) return;
+                pulling = false;
+                const shouldRefresh = distance >= THRESHOLD;
+                indicator.style.height = '';
+                indicator.classList.remove('is-ready');
+                if (shouldRefresh && typeof refreshEmails === 'function') {
+                    if (typeof triggerHaptic === 'function') triggerHaptic(10);
+                    refreshEmails();
+                }
+            });
+        }
+
         // 初始化
         document.addEventListener('DOMContentLoaded', async function () {
             // 初始化 CSRF Token
@@ -1259,6 +1298,7 @@
                 searchInput.addEventListener('input', debouncedSearch);
             }
 
+            setupPullToRefresh();
             syncResponsiveUI();
             handleExtensionLaunchHash();
         });

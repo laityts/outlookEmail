@@ -118,3 +118,23 @@ class BackButtonNavTests(unittest.TestCase):
         start = js.index('function handleMobileBack')
         end = js.index('\n        }', start)
         self.assertIn('isMobileLayout', js[start:end])
+
+
+class PullToRefreshTests(unittest.TestCase):
+    def test_pull_to_refresh_setup_present(self):
+        js = CORE_JS.read_text(encoding='utf-8')
+        self.assertIn('function setupPullToRefresh', js)
+        self.assertIn("addEventListener('touchstart'", js)
+        self.assertIn("addEventListener('touchmove'", js)
+        self.assertIn("addEventListener('touchend'", js)
+
+    def test_pull_to_refresh_calls_refresh(self):
+        js = CORE_JS.read_text(encoding='utf-8')
+        start = js.index('function setupPullToRefresh')
+        end = js.index('\n        }\n', start)
+        self.assertIn('refreshEmails', js[start:end])
+        self.assertIn('isMobileLayout', js[start:end])
+
+    def test_pull_indicator_styles_present(self):
+        css = MOBILE_CSS.read_text(encoding='utf-8')
+        self.assertIn('pull-refresh-indicator', css)
