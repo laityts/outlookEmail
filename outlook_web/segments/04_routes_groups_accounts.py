@@ -165,6 +165,7 @@ def bundled_index_css():
         '06-modals-toast.css',
         '07-meta.css',
         '08-responsive.css',
+        '09-mobile.css',
     )
 
     combined_css = '\n\n'.join(
