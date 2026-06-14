@@ -1,7 +1,1 @@
         /* 移动端手势、骨架屏与触觉相关样式（仅在 <=768px 生效） */
-
-        @media (hover: none) and (max-width: 768px) {
-            .group-actions {
-                opacity: 1;
-            }
-        }
