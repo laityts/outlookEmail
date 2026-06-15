@@ -3137,12 +3137,59 @@ class TelegramForwardingProxySettingsTests(unittest.TestCase):
         self.assertEqual(mocked_request.call_count, 1)
         self.assertEqual(
             mocked_request.call_args.args[:2],
-            ('post', 'https://proxy.vlato.site/bot123456:abcdef/sendMessage'),
+            ('post', 'https://proxy.vlato.site/proxy'),
+        )
+        self.assertEqual(
+            mocked_request.call_args.kwargs['headers'],
+            {'X-Target-URL': 'https://api.telegram.org/bot123456:abcdef/sendMessage'},
         )
         self.assertEqual(
             mocked_request.call_args.kwargs['proxies'],
             {'http': 'socks5://127.0.0.1:1080', 'https': 'socks5://127.0.0.1:1080'},
         )
+
+    def test_send_forward_telegram_accepts_configured_proxy_endpoint(self):
+        class FakeResponse:
+            ok = True
+
+        with self.app.app_context():
+            self.assertTrue(web_outlook_app.set_setting_encrypted('telegram_bot_token', '123456:abcdef'))
+            self.assertTrue(web_outlook_app.set_setting('telegram_chat_id', '-1001234567890'))
+            self.assertTrue(web_outlook_app.set_setting('telegram_api_base_url', 'https://proxy.vlato.site/proxy'))
+
+        with self.app.app_context():
+            with patch.object(web_outlook_app.requests, 'request', return_value=FakeResponse()) as mocked_request:
+                success = web_outlook_app.send_forward_telegram('telegram proxy endpoint test')
+
+        self.assertTrue(success)
+        self.assertEqual(
+            mocked_request.call_args.args[:2],
+            ('post', 'https://proxy.vlato.site/proxy'),
+        )
+        self.assertEqual(
+            mocked_request.call_args.kwargs['headers'],
+            {'X-Target-URL': 'https://api.telegram.org/bot123456:abcdef/sendMessage'},
+        )
+
+    def test_send_forward_telegram_keeps_official_api_url_shape(self):
+        class FakeResponse:
+            ok = True
+
+        with self.app.app_context():
+            self.assertTrue(web_outlook_app.set_setting_encrypted('telegram_bot_token', '123456:abcdef'))
+            self.assertTrue(web_outlook_app.set_setting('telegram_chat_id', '-1001234567890'))
+            self.assertTrue(web_outlook_app.set_setting('telegram_api_base_url', 'https://api.telegram.org'))
+
+        with self.app.app_context():
+            with patch.object(web_outlook_app.requests, 'request', return_value=FakeResponse()) as mocked_request:
+                success = web_outlook_app.send_forward_telegram('telegram official api test')
+
+        self.assertTrue(success)
+        self.assertEqual(
+            mocked_request.call_args.args[:2],
+            ('post', 'https://api.telegram.org/bot123456:abcdef/sendMessage'),
+        )
+        self.assertIsNone(mocked_request.call_args.kwargs['headers'])
 
     def test_test_forward_telegram_reports_api_error_description(self):
         class FakeResponse:
@@ -3206,6 +3253,12 @@ class TelegramForwardingProxySettingsTests(unittest.TestCase):
         self.assertFalse(payload['success'])
         self.assertIn('/bot***/sendMessage', payload['error'])
         self.assertNotIn('123456:abcdef', payload['error'])
+        self.assertEqual(
+            web_outlook_app.sanitize_forward_request_error(
+                'Fetch API cannot load: bot123456:abcdef/sendMessage'
+            ),
+            'Fetch API cannot load: bot***/sendMessage',
+        )
 
     def test_send_forward_telegram_treats_ok_false_payload_as_failure(self):
         class FakeResponse:

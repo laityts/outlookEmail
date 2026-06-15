@@ -97,13 +97,31 @@ def normalize_telegram_api_base_url(value: Any) -> str:
     return api_base_url.rstrip('/')
 
 
+def build_telegram_official_send_message_url(bot_token: str) -> str:
+    return f'https://api.telegram.org/bot{bot_token}/sendMessage'
+
+
 def build_telegram_send_message_url(bot_token: str, api_base_url: Any = '') -> str:
     return f'{normalize_telegram_api_base_url(api_base_url)}/bot{bot_token}/sendMessage'
 
 
+def build_telegram_request_options(bot_token: str, api_base_url: Any = '') -> tuple[str, Dict[str, str]]:
+    normalized_base_url = normalize_telegram_api_base_url(api_base_url)
+    parsed = urlparse(normalized_base_url)
+    path = parsed.path.rstrip('/')
+    target_url = build_telegram_official_send_message_url(bot_token)
+
+    if parsed.netloc == 'proxy.vlato.site' or path == '/proxy':
+        request_url = normalized_base_url if path == '/proxy' else f'{normalized_base_url}/proxy'
+        return request_url, {'X-Target-URL': target_url}
+
+    return build_telegram_send_message_url(bot_token, normalized_base_url), {}
+
+
 def sanitize_forward_request_error(details: Any) -> str:
     sanitized = sanitize_error_details(str(details or ''))
-    return re.sub(r'(/bot)[^/\s]+(/sendMessage)', r'\1***\2', sanitized)
+    sanitized = re.sub(r'(/bot)[^/\s]+(/sendMessage)', r'\1***\2', sanitized)
+    return re.sub(r'(?<![A-Za-z0-9_])bot[^/\s]+(/sendMessage)', r'bot***\1', sanitized)
 
 
 def is_telegram_response_success(response: Any) -> bool:
@@ -145,13 +163,15 @@ def build_telegram_response_error(response: Any) -> str:
 
 
 def request_forward_telegram(bot_token: str, chat_id: str, text: str, proxy_url: str = '', api_base_url: Any = ''):
+    request_url, headers = build_telegram_request_options(bot_token, api_base_url)
     return post_with_proxy_fallback(
-        build_telegram_send_message_url(bot_token, api_base_url),
+        request_url,
         json={
             'chat_id': chat_id,
             'text': text[:4000],
             'disable_web_page_preview': True,
         },
+        headers=headers or None,
         timeout=15,
         proxy_url=proxy_url,
     )
