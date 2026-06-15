@@ -159,12 +159,15 @@
             }
 
             .account-panel-header {
-                padding: 10px 12px;
-                align-items: flex-start;
+                padding: 8px 12px;
+                min-height: 0;
+                gap: 8px;
+                align-items: center;
             }
 
             .account-panel-title {
                 flex: 1;
+                min-width: 0;
             }
 
             .account-panel-header-actions {
@@ -175,6 +178,11 @@
             .panel-action-btn {
                 width: 44px;
                 height: 44px;
+            }
+
+            .account-panel-header-actions .panel-action-btn {
+                width: 36px;
+                height: 36px;
             }
 
             .modal-close {
@@ -191,18 +199,32 @@
             }
 
             .account-toolbar {
-                padding: 12px;
-                gap: 12px;
+                padding: 10px 12px;
+                gap: 8px;
             }
 
             .toolbar-row {
                 align-items: flex-start;
             }
 
+            /* 默认单列：标签筛选未渲染时「每页」下拉左对齐填充，不悬空右侧 */
             .account-list-options-row {
                 display: grid;
-                grid-template-columns: minmax(0, 1fr) 100px;
+                grid-template-columns: minmax(0, 1fr);
                 align-items: center;
+            }
+
+            .account-list-options-row .account-page-size-row {
+                justify-content: flex-start;
+            }
+
+            /* 有标签筛选（JS 注入 dropdown）时恢复「筛选 / 每页」两列 */
+            .account-list-options-row:has(#tagFilterContainer .tag-filter-dropdown) {
+                grid-template-columns: minmax(0, 1fr) 100px;
+            }
+
+            .account-list-options-row:has(#tagFilterContainer .tag-filter-dropdown) .account-page-size-row {
+                justify-content: flex-end;
             }
 
             .tag-filter-dropdown {
@@ -363,8 +385,10 @@
             }
 
             .account-item {
-                grid-template-columns: 18px minmax(0, 1fr) 36px;
-                gap: 10px;
+                grid-template-columns: 16px minmax(0, 1fr) 36px;
+                gap: 8px;
+                margin: 0 8px 8px;
+                padding: 12px 10px;
             }
 
             .account-menu-trigger {
@@ -744,16 +768,6 @@
 
             .mobile-quickbar-value {
                 font-size: 12px;
-            }
-
-            .account-panel-header {
-                flex-direction: column;
-            }
-
-            .account-panel-header-actions {
-                margin-left: 0;
-                width: 100%;
-                justify-content: flex-end;
             }
 
             .email-top-row {
