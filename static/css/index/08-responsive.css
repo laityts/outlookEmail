@@ -131,11 +131,11 @@
             }
 
             .group-panel {
-                width: min(300px, 84vw);
+                width: min(260px, 72vw);
             }
 
             .account-panel {
-                width: min(380px, 92vw);
+                width: min(340px, 85vw);
             }
 
             .panel-header,
@@ -744,11 +744,6 @@
 
             .mobile-quickbar-value {
                 font-size: 12px;
-            }
-
-            .group-panel,
-            .account-panel {
-                width: calc(100vw - 20px);
             }
 
             .account-panel-header {
