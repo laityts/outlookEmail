@@ -26,6 +26,11 @@ data/
 # 环境变量
 .env
 
+# 本机部署与排障产物
+/docker-compose.yml
+/scripts/cloudflared/
+/docs/superpowers/plans/2026-06-15-cloudflare-tunnel-1033-fix.md
+
 # IDE
 .vscode/
 .idea/
