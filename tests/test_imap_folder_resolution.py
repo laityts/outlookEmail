@@ -3144,6 +3144,91 @@ class TelegramForwardingProxySettingsTests(unittest.TestCase):
             {'http': 'socks5://127.0.0.1:1080', 'https': 'socks5://127.0.0.1:1080'},
         )
 
+    def test_test_forward_telegram_reports_api_error_description(self):
+        class FakeResponse:
+            ok = False
+            status_code = 401
+            text = '{"ok":false,"error_code":401,"description":"Unauthorized"}'
+
+            def json(self):
+                return {
+                    'ok': False,
+                    'error_code': 401,
+                    'description': 'Unauthorized',
+                }
+
+        with patch.object(web_outlook_app.requests, 'request', return_value=FakeResponse()):
+            response = self.client.post(
+                '/api/settings/test-forward-channel',
+                json={
+                    'channel': 'telegram',
+                    'config': {
+                        'telegram': {
+                            'bot_token': '123456:abcdef',
+                            'chat_id': '-1001234567890',
+                            'api_base_url': 'https://proxy.vlato.site',
+                        },
+                    },
+                }
+            )
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.get_json()
+        self.assertFalse(payload['success'])
+        self.assertIn('Telegram 测试发送失败', payload['error'])
+        self.assertIn('HTTP 401', payload['error'])
+        self.assertIn('Unauthorized', payload['error'])
+
+    def test_test_forward_telegram_sanitizes_bot_token_in_exception(self):
+        def raise_connection_error(*_args, **_kwargs):
+            raise web_outlook_app.requests.exceptions.ConnectionError(
+                'HTTPSConnectionPool(host="proxy.vlato.site"): '
+                'Max retries exceeded with url: /bot123456:abcdef/sendMessage'
+            )
+
+        with patch.object(web_outlook_app.requests, 'request', side_effect=raise_connection_error):
+            response = self.client.post(
+                '/api/settings/test-forward-channel',
+                json={
+                    'channel': 'telegram',
+                    'config': {
+                        'telegram': {
+                            'bot_token': '123456:abcdef',
+                            'chat_id': '-1001234567890',
+                            'api_base_url': 'https://proxy.vlato.site',
+                        },
+                    },
+                }
+            )
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.get_json()
+        self.assertFalse(payload['success'])
+        self.assertIn('/bot***/sendMessage', payload['error'])
+        self.assertNotIn('123456:abcdef', payload['error'])
+
+    def test_send_forward_telegram_treats_ok_false_payload_as_failure(self):
+        class FakeResponse:
+            ok = True
+            status_code = 200
+
+            def json(self):
+                return {
+                    'ok': False,
+                    'error_code': 400,
+                    'description': 'Bad Request: chat not found',
+                }
+
+        with self.app.app_context():
+            self.assertTrue(web_outlook_app.set_setting_encrypted('telegram_bot_token', '123456:abcdef'))
+            self.assertTrue(web_outlook_app.set_setting('telegram_chat_id', '-1001234567890'))
+
+        with self.app.app_context():
+            with patch.object(web_outlook_app.requests, 'request', return_value=FakeResponse()):
+                success = web_outlook_app.send_forward_telegram('telegram ok false test')
+
+        self.assertFalse(success)
+
     def test_settings_api_persists_wecom_webhook_url(self):
         response = self.client.put(
             '/api/settings',

@@ -101,6 +101,62 @@ def build_telegram_send_message_url(bot_token: str, api_base_url: Any = '') -> s
     return f'{normalize_telegram_api_base_url(api_base_url)}/bot{bot_token}/sendMessage'
 
 
+def sanitize_forward_request_error(details: Any) -> str:
+    sanitized = sanitize_error_details(str(details or ''))
+    return re.sub(r'(/bot)[^/\s]+(/sendMessage)', r'\1***\2', sanitized)
+
+
+def is_telegram_response_success(response: Any) -> bool:
+    if not getattr(response, 'ok', False):
+        return False
+    try:
+        payload = response.json()
+    except Exception:
+        return True
+    if isinstance(payload, dict) and payload.get('ok') is False:
+        return False
+    return True
+
+
+def build_telegram_response_error(response: Any) -> str:
+    status_code = getattr(response, 'status_code', None)
+    status_text = f'HTTP {status_code}' if status_code else 'HTTP 请求失败'
+    details = ''
+
+    try:
+        payload = response.json()
+    except Exception:
+        payload = None
+
+    if isinstance(payload, dict):
+        description = str(payload.get('description') or payload.get('message') or payload.get('error') or '').strip()
+        error_code = str(payload.get('error_code') or payload.get('code') or '').strip()
+        parts = [description] if description else []
+        if error_code:
+            parts.append(f'code={error_code}')
+        details = '；'.join(parts)
+
+    if not details:
+        details = str(getattr(response, 'text', '') or '').strip()
+
+    if details:
+        return sanitize_forward_request_error(f'{status_text}: {details[:300]}')
+    return status_text
+
+
+def request_forward_telegram(bot_token: str, chat_id: str, text: str, proxy_url: str = '', api_base_url: Any = ''):
+    return post_with_proxy_fallback(
+        build_telegram_send_message_url(bot_token, api_base_url),
+        json={
+            'chat_id': chat_id,
+            'text': text[:4000],
+            'disable_web_page_preview': True,
+        },
+        timeout=15,
+        proxy_url=proxy_url,
+    )
+
+
 def get_forward_account_delay_seconds() -> int:
     try:
         return max(0, min(60, int(get_setting('forward_account_delay_seconds', '0') or '0')))
@@ -228,37 +284,26 @@ def send_forward_telegram(text: str) -> bool:
     api_base_url = get_setting('telegram_api_base_url', TELEGRAM_API_BASE_URL).strip()
     if not bot_token or not chat_id:
         return False
-    response = post_with_proxy_fallback(
-        build_telegram_send_message_url(bot_token, api_base_url),
-        json={
-            'chat_id': chat_id,
-            'text': text[:4000],
-            'disable_web_page_preview': True,
-        },
-        timeout=15,
-        proxy_url=proxy_url,
-    )
-    return response.ok
+    response = request_forward_telegram(bot_token, chat_id, text, proxy_url, api_base_url)
+    return is_telegram_response_success(response)
 
 
 def send_forward_telegram_with_config(config: Dict[str, Any], text: str) -> bool:
+    success, _error = send_forward_telegram_with_config_result(config, text)
+    return success
+
+
+def send_forward_telegram_with_config_result(config: Dict[str, Any], text: str) -> tuple[bool, str]:
     bot_token = str(config.get('bot_token', '') or '').strip()
     chat_id = str(config.get('chat_id', '') or '').strip()
     proxy_url = str(config.get('proxy_url', '') or '').strip()
     api_base_url = str(config.get('api_base_url', '') or '').strip()
     if not bot_token or not chat_id:
-        return False
-    response = post_with_proxy_fallback(
-        build_telegram_send_message_url(bot_token, api_base_url),
-        json={
-            'chat_id': chat_id,
-            'text': text[:4000],
-            'disable_web_page_preview': True,
-        },
-        timeout=15,
-        proxy_url=proxy_url,
-    )
-    return response.ok
+        return False, '缺少 Telegram Bot Token 或 Chat ID'
+    response = request_forward_telegram(bot_token, chat_id, text, proxy_url, api_base_url)
+    if is_telegram_response_success(response):
+        return True, ''
+    return False, build_telegram_response_error(response)
 
 
 def send_forward_wecom(text: str) -> bool:
@@ -823,8 +868,14 @@ def api_test_forward_channel():
 
         if channel == 'telegram':
             telegram_config = config.get('telegram', {}) if isinstance(config, dict) else {}
-            if not send_forward_telegram_with_config(telegram_config, telegram_text):
-                return jsonify({'success': False, 'error': 'Telegram 测试发送失败，请检查当前表单配置'})
+            success, error = send_forward_telegram_with_config_result(telegram_config, telegram_text)
+            if not success:
+                message = 'Telegram 测试发送失败'
+                if error:
+                    message = f'{message}：{error}'
+                else:
+                    message = f'{message}，请检查当前表单配置'
+                return jsonify({'success': False, 'error': message})
             return jsonify({'success': True, 'message': 'Telegram 测试消息已发送，请检查目标会话'})
 
         if channel == 'wecom':
@@ -835,7 +886,7 @@ def api_test_forward_channel():
 
         return jsonify({'success': False, 'error': '未知转发渠道'})
     except Exception as exc:
-        return jsonify({'success': False, 'error': f'测试失败: {str(exc)}'})
+        return jsonify({'success': False, 'error': f'测试失败: {sanitize_forward_request_error(exc)}'})
 
 
 def record_webdav_backup_result(status: str, message: str, filename: str = '') -> None:
