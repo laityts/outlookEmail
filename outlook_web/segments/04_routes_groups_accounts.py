@@ -172,17 +172,31 @@ def bundled_index_css():
         (css_root / filename).read_text(encoding='utf-8')
         for filename in css_parts
     )
-    return Response(combined_css, mimetype='text/css')
+    response = Response(combined_css, mimetype='text/css')
+    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
 
 
 @app.route('/')
 @login_required
 def index():
     """主页"""
+    css_root = Path(app.static_folder) / 'css' / 'index'
+    try:
+        index_css_version = str(int(max(
+            css_file.stat().st_mtime
+            for css_file in css_root.glob('*.css')
+        )))
+    except (OSError, ValueError):
+        index_css_version = APP_VERSION
+
     return render_template(
         'index.html',
         app_version=APP_VERSION,
         changelog_url=CHANGELOG_URL,
+        index_css_version=index_css_version,
     )
 
 
